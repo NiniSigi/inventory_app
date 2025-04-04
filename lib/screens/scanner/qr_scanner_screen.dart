@@ -20,28 +20,24 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         actions: [
           IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller.torchState,
-              builder: (context, state, child) {
-                if (state == TorchState.off) {
-                  return const Icon(Icons.flash_off);
-                }
-                return const Icon(Icons.flash_on);
-              },
+            icon: Icon(
+              controller.torchEnabled ? Icons.flash_on : Icons.flash_off,
             ),
-            onPressed: () => controller.toggleTorch(),
+            onPressed: () {
+              controller.toggleTorch();
+              setState(() {}); // Ensure UI updates after toggling the torch
+            },
           ),
           IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller.cameraFacingState,
-              builder: (context, state, child) {
-                if (state == CameraFacing.front) {
-                  return const Icon(Icons.camera_front);
-                }
-                return const Icon(Icons.camera_rear);
-              },
+            icon: Icon(
+              controller.facing == CameraFacing.front
+                  ? Icons.camera_front
+                  : Icons.camera_rear,
             ),
-            onPressed: () => controller.switchCamera(),
+            onPressed: () {
+              controller.switchCamera();
+              setState(() {}); // Ensure UI updates after switching the camera
+            },
           ),
         ],
       ),
@@ -60,23 +56,25 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             children: [
               MobileScanner(
                 controller: controller,
-                onDetect: (capture) async {
-                  final List<Barcode> barcodes = capture.barcodes;
-                  if (barcodes.isNotEmpty && barcodes[0].rawValue != null) {
-                    String scannedValue = barcodes[0].rawValue!;
-                    try {
-                      // Validate if it's a number
-                      int.parse(scannedValue);
-                      // Stop scanning before navigating
-                      controller.stop();
-                      Navigator.pop(context, scannedValue);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Please scan a valid number'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                onDetect: (BarcodeCapture capture) {
+                  if (capture.barcodes.isNotEmpty) {
+                    final scannedBarcode = capture.barcodes.first;
+                    if (scannedBarcode.rawValue != null) {
+                      String scannedValue = scannedBarcode.rawValue!;
+                      try {
+                        // Validate if it's a number
+                        int.parse(scannedValue);
+                        // Stop scanning before navigating
+                        controller.stop();
+                        Navigator.pop(context, scannedValue);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please scan a valid number'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   }
                 },
