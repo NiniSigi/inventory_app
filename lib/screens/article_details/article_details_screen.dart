@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../services/article_service.dart';
-import '../../models/article.dart';
-import '../../widgets/custom_bottom_nav.dart'; // Fixed import path
+import '../../models/inventory_entry.dart'; // Updated import
+import '../../widgets/custom_bottom_nav.dart';
 
 class ArticleDetailsScreen extends StatefulWidget {
   final String articleId;
@@ -22,7 +21,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
   final TextEditingController _amountController = TextEditingController();
   String? selectedTeam;
   final List<String> teams = ['SPAEHER', 'AMEISLI'];
-  late Future<Article> articleFuture;
+  late Future<Artikel> articleFuture; // Changed from Article to Artikel
 
   @override
   void initState() {
@@ -87,7 +86,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
     );
   }
 
-  Widget _buildEntrySection(BuildContext context, Article article) {
+  Widget _buildEntrySection(BuildContext context, Artikel article) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
@@ -215,7 +214,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
     );
   }
 
-  Widget _buildArticleInformation(BuildContext context, Article article) {
+  Widget _buildArticleInformation(BuildContext context, Artikel article) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
@@ -254,16 +253,16 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
                   context,
                   'Lager',
                   convertUmlauts(article.lager),
-                  'Menge',
-                  article.menge.toString(),
+                  'Einheit',
+                  convertUmlauts(article.einheit.name),
                 ),
                 SizedBox(height: 16),
                 _buildInfoRow(
                   context,
+                  'Total Menge',
+                  article.menge.toString(),
                   'Rubrik',
                   convertUmlauts(article.rubrik),
-                  'ID',
-                  article.id.toString(),
                 ),
                 if (article.groesse != null) ...[
                   SizedBox(height: 16),
@@ -286,7 +285,8 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
-      body: FutureBuilder<Article>(
+      body: FutureBuilder<Artikel>(
+        // Changed from Article to Artikel
         future: articleFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

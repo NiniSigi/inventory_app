@@ -1,15 +1,18 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/article.dart';
+import '../models/inventory_entry.dart'; // Updated import
 
-Future<Article> fetchArticleById(String id) async {
+Future<Artikel> fetchArticleById(String id) async {
+  // Changed return type to Artikel
   try {
     final response = await http.get(
       Uri.parse('https://inventory-backend-pink.vercel.app/api/types/$id'),
     );
 
     if (response.statusCode == 200) {
-      return Article.fromJson(jsonDecode(response.body));
+      return Artikel.fromJson(
+        jsonDecode(response.body),
+      ); // Using Artikel.fromJson
     } else {
       throw Exception('Failed to load article: ${response.statusCode}');
     }
