@@ -27,6 +27,7 @@ Future<bool> createEntry({
   required int typeId,
 }) async {
   try {
+    print('Creating entry with typeId: $typeId'); // Debug log
     final response = await http.post(
       Uri.parse('https://inventory-backend-pink.vercel.app/api/entries'),
       headers: {'Content-Type': 'application/json'},
@@ -37,8 +38,15 @@ Future<bool> createEntry({
       }),
     );
 
-    // Status 201 means Created, 200 means OK - both are successful
-    return response.statusCode == 201 || response.statusCode == 200;
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return true;
+    } else {
+      print('Error response: ${response.body}');
+      return false;
+    }
   } catch (e) {
     print('Error creating entry: $e');
     return false;

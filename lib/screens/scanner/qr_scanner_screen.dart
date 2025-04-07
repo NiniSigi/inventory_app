@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../../models/inventory_entry.dart';
+import '../../services/inventory_service.dart';
 import '../../widgets/custom_bottom_nav.dart';
+import '../search_screen.dart';
 
 class QRScannerScreen extends StatefulWidget {
   @override
@@ -85,9 +88,18 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         ),
       ),
       bottomNavigationBar: CustomBottomNav(
-        currentIndex: -1, // No active item since this is a scanner screen
+        currentIndex: -1,
         onTap: (index) {
-          if (index == 0 || index == 1 || index == 2) {
+          if (index == 0) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          } else if (index == 1) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => SearchScreen(),
+                settings: RouteSettings(name: '/search'),
+              ),
+            );
+          } else if (index == 2) {
             Navigator.of(context).popUntil((route) => route.isFirst);
           }
         },

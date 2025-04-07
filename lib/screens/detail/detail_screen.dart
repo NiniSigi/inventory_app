@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../models/inventory_entry.dart';
 import '../../services/inventory_service.dart';
 import '../../widgets/custom_bottom_nav.dart';
+import '../search_screen.dart';
+import '../home/home-screen.dart';
 
 class DetailScreen extends StatefulWidget {
   final InventoryEntry entry;
@@ -237,7 +239,23 @@ class _DetailScreenState extends State<DetailScreen> {
       bottomNavigationBar: CustomBottomNav(
         currentIndex: -1, // No active item since this is a detail screen
         onTap: (index) {
-          if (index == 0 || index == 1 || index == 2) {
+          if (index == 0) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(),
+                settings: RouteSettings(name: '/home'),
+              ),
+              (route) => false,
+            );
+          } else if (index == 1) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => SearchScreen(),
+                settings: RouteSettings(name: '/search'),
+              ),
+              (route) => false,
+            );
+          } else if (index == 2) {
             Navigator.of(context).popUntil((route) => route.isFirst);
           }
         },

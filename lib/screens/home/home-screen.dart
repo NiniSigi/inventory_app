@@ -4,6 +4,7 @@ import '../../services/inventory_service.dart';
 import '../detail/detail_screen.dart';
 import '../scanner/qr_scanner_screen.dart';
 import '../article_details/article_details_screen.dart';
+import '../search_screen.dart';
 import '../../widgets/custom_bottom_nav.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -78,9 +79,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleSearch() {
-    ScaffoldMessenger.of(
+    Navigator.push(
       context,
-    ).showSnackBar(SnackBar(content: Text('Search coming soon')));
+      MaterialPageRoute(builder: (context) => const SearchScreen()),
+    );
   }
 
   void _handleSettings() {

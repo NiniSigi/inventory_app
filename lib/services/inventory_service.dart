@@ -52,3 +52,81 @@ Future<bool> returnItem(String entryId) async {
 String formatDate(DateTime date) {
   return DateFormat('dd.MM.yyyy HH:mm').format(date);
 }
+
+class InventoryService {
+  Future<List<InventoryEntry>> getInventory() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://inventory-backend-pink.vercel.app/api/types'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) {
+          final artikel = Artikel.fromJson(item);
+          return InventoryEntry(
+            id: artikel.id,
+            startedAt: DateTime.now(),
+            teamName: Team.SPAEHER,
+            typeId: artikel.id,
+            amountOfItem: artikel.menge,
+            type: artikel,
+          );
+        }).toList();
+      } else {
+        throw Exception('Failed to load inventory items');
+      }
+    } catch (e) {
+      throw Exception('Error loading inventory: $e');
+    }
+  }
+
+  Future<Artikel> getArticleById(String id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://inventory-backend-pink.vercel.app/api/types/$id'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Artikel.fromJson(data);
+      } else {
+        throw Exception('Failed to load article');
+      }
+    } catch (e) {
+      throw Exception('Error loading article: $e');
+    }
+  }
+
+  Future<bool> createEntry({
+    required String teamName,
+    required int amountOfItem,
+    required String typeId,
+  }) async {
+    try {
+      print('Creating entry with typeId: $typeId'); // Debug log
+      final response = await http.post(
+        Uri.parse('https://inventory-backend-pink.vercel.app/api/entries'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'teamName': teamName,
+          'amountOfItem': amountOfItem,
+          'typeId': typeId,
+        }),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        print('Error response: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error creating entry: $e');
+      return false;
+    }
+  }
+}
