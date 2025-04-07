@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../models/inventory_entry.dart';
 import '../../services/inventory_service.dart';
 import '../detail/detail_screen.dart';
+import '../scanner/qr_scanner_screen.dart';
+import '../article_details/article_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -230,8 +232,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Handle button press
+                onPressed: () async {
+                  final scannedCode = await Navigator.push<String>(
+                    context,
+                    MaterialPageRoute(builder: (context) => QRScannerScreen()),
+                  );
+
+                  if (scannedCode != null) {
+                    if (!mounted) return;
+
+                    final needsRefresh = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ArticleDetailsScreen(
+                              articleId: scannedCode,
+                              defaultTeam:
+                                  selectedTeam == '' ? null : selectedTeam,
+                            ),
+                      ),
+                    );
+
+                    if (needsRefresh == true) {
+                      _refreshItems();
+                    }
+                  }
                 },
                 icon: Icon(Icons.add, size: 32),
                 label: Text('Add Item'),
