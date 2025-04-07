@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../models/inventory_entry.dart';
 import '../../services/inventory_service.dart';
 import '../detail/detail_screen.dart';
 
@@ -8,7 +9,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<List<ItemData>> _itemsFuture;
+  late Future<List<InventoryEntry>> _itemsFuture;
   String? selectedTeam;
 
   final List<String> teams = ['SPAEHER', 'AMEISLI', ''];
@@ -25,19 +26,24 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _returnItem(int itemId) async {
+  Future<void> _returnItem(String entryId) async {
     try {
-      final success = await returnItem(itemId);
+      print('Attempting to return item: $entryId'); // Debug log
+      final success = await returnItem(entryId);
+
       if (success) {
         _refreshItems();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Item returned successfully')));
+      } else {
+        throw Exception('Return failed');
       }
     } catch (e) {
+      print('Error in return handler: $e'); // Debug log
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Failed to return item')));
+      ).showSnackBar(SnackBar(content: Text('Failed to return item: $e')));
     }
   }
 
@@ -96,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-            FutureBuilder<List<ItemData>>(
+            FutureBuilder<List<InventoryEntry>>(
               future: _itemsFuture,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -121,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: EdgeInsets.all(16),
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
-                          final item = snapshot.data![index];
+                          final entry = snapshot.data![index];
                           return Card(
                             elevation: 2,
                             margin: EdgeInsets.only(bottom: 16),
@@ -131,7 +137,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 backgroundColor:
                                     Theme.of(context).colorScheme.primary,
                                 child: Text(
-                                  item.name[0].toUpperCase(),
+                                  convertUmlauts(
+                                    entry.type.artikel[0].toUpperCase(),
+                                  ),
                                   style: TextStyle(
                                     color:
                                         Theme.of(context).colorScheme.onPrimary,
@@ -139,11 +147,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               title: Text(
-                                convertUmlauts(item.name),
+                                convertUmlauts(entry.type.artikel),
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               trailing: ElevatedButton(
-                                onPressed: () => _returnItem(item.id),
+                                onPressed:
+                                    entry.returnedAt == null
+                                        ? () => _returnItem(entry.id.toString())
+                                        : null,
                                 style: ElevatedButton.styleFrom(
                                   side: BorderSide(
                                     color: Colors.green,
@@ -153,15 +164,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 child: Text('Return'),
                               ),
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                final needsRefresh = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder:
-                                        (context) =>
-                                            DetailScreen(item: item.name),
+                                        (context) => DetailScreen(entry: entry),
                                   ),
                                 );
+                                if (needsRefresh == true) {
+                                  _refreshItems();
+                                }
                               },
                             ),
                           );
