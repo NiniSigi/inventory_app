@@ -134,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Container(
               margin: EdgeInsets.all(16),
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Theme.of(context).colorScheme.primary,
@@ -145,7 +145,15 @@ class _HomeScreenState extends State<HomeScreen> {
               child: DropdownButton<String>(
                 value: selectedTeam,
                 isExpanded: true,
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                underline: SizedBox(),
                 hint: Text('Select Team'),
+                menuMaxHeight: 200,
+                icon: Icon(Icons.arrow_drop_down),
+                dropdownColor: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                isDense: false,
+                alignment: AlignmentDirectional.centerStart,
                 items:
                     teams.map((String team) {
                       return DropdownMenuItem<String>(
