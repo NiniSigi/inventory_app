@@ -60,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final maxListHeight = screenHeight * 0.5;
 
     return Scaffold(
       appBar: AppBar(
@@ -67,51 +68,16 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              margin: EdgeInsets.all(16),
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: DropdownButton<String>(
-                value: selectedTeam,
-                isExpanded: true,
-                hint: Text('Select Team'),
-                items:
-                    teams.map((String team) {
-                      return DropdownMenuItem<String>(
-                        value: team,
-                        child: Text(
-                          team.isEmpty ? 'None' : convertUmlauts(team),
-                        ),
-                      );
-                    }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedTeam = newValue;
-                    _refreshItems();
-                  });
-                },
-              ),
-            ),
-            FutureBuilder<List<InventoryEntry>>(
-              future: _itemsFuture,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return CircularProgressIndicator();
-                }
-
-                return Container(
-                  height: screenHeight * 0.5, // Takes up half the screen
+      body: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(bottom: 80),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
                   margin: EdgeInsets.all(16),
+                  padding: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: Theme.of(context).colorScheme.primary,
@@ -119,74 +85,168 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: RefreshIndicator(
-                      onRefresh: _refreshItems,
-                      child: ListView.builder(
-                        padding: EdgeInsets.all(16),
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          final entry = snapshot.data![index];
-                          return Card(
-                            elevation: 2,
-                            margin: EdgeInsets.only(bottom: 16),
-                            child: ListTile(
-                              contentPadding: EdgeInsets.all(16),
-                              leading: CircleAvatar(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
-                                child: Text(
-                                  convertUmlauts(
-                                    entry.type.artikel[0].toUpperCase(),
-                                  ),
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.onPrimary,
-                                  ),
-                                ),
-                              ),
-                              title: Text(
-                                convertUmlauts(entry.type.artikel),
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              trailing: ElevatedButton(
-                                onPressed:
-                                    entry.returnedAt == null
-                                        ? () => _returnItem(entry.id.toString())
-                                        : null,
-                                style: ElevatedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: Colors.green,
-                                    width: 2,
-                                  ),
-                                  foregroundColor: Colors.green,
-                                ),
-                                child: Text('Return'),
-                              ),
-                              onTap: () async {
-                                final needsRefresh = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => DetailScreen(entry: entry),
-                                  ),
-                                );
-                                if (needsRefresh == true) {
-                                  _refreshItems();
-                                }
-                              },
+                  child: DropdownButton<String>(
+                    value: selectedTeam,
+                    isExpanded: true,
+                    hint: Text('Select Team'),
+                    items:
+                        teams.map((String team) {
+                          return DropdownMenuItem<String>(
+                            value: team,
+                            child: Text(
+                              team.isEmpty ? 'Kein Team' : convertUmlauts(team),
                             ),
                           );
-                        },
-                      ),
-                    ),
+                        }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedTeam = newValue;
+                        _refreshItems();
+                      });
+                    },
                   ),
-                );
-              },
+                ),
+                SizedBox(
+                  height: maxListHeight,
+                  child: FutureBuilder<List<InventoryEntry>>(
+                    future: _itemsFuture,
+                    builder: (context, snapshot) {
+                      return Container(
+                        margin: EdgeInsets.all(16),
+                        decoration:
+                            (!snapshot.hasData &&
+                                        snapshot.connectionState ==
+                                            ConnectionState.waiting) ||
+                                    (snapshot.hasData &&
+                                        snapshot.data!.isNotEmpty)
+                                ? BoxDecoration(
+                                  border: Border.all(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                )
+                                : null,
+                        child:
+                            snapshot.connectionState == ConnectionState.waiting
+                                ? Center(child: CircularProgressIndicator())
+                                : snapshot.hasError
+                                ? Center(
+                                  child: Text('Error: ${snapshot.error}'),
+                                )
+                                : !snapshot.hasData || snapshot.data!.isEmpty
+                                ? Center(child: Text('No items available'))
+                                : RefreshIndicator(
+                                  onRefresh: _refreshItems,
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.all(16),
+                                    itemCount: snapshot.data!.length,
+                                    itemBuilder: (context, index) {
+                                      final entry = snapshot.data![index];
+                                      return Card(
+                                        elevation: 2,
+                                        margin: EdgeInsets.only(bottom: 16),
+                                        child: ListTile(
+                                          contentPadding: EdgeInsets.all(16),
+                                          leading: CircleAvatar(
+                                            backgroundColor:
+                                                Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                            child: Text(
+                                              convertUmlauts(
+                                                entry.type.artikel[0]
+                                                    .toUpperCase(),
+                                              ),
+                                              style: TextStyle(
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.onPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                          title: Text(
+                                            convertUmlauts(entry.type.artikel),
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          trailing: ElevatedButton(
+                                            onPressed:
+                                                entry.returnedAt == null
+                                                    ? () => _returnItem(
+                                                      entry.id.toString(),
+                                                    )
+                                                    : null,
+                                            style: ElevatedButton.styleFrom(
+                                              side: BorderSide(
+                                                color: Colors.green,
+                                                width: 2,
+                                              ),
+                                              foregroundColor: Colors.green,
+                                            ),
+                                            child: Text('Return'),
+                                          ),
+                                          onTap: () async {
+                                            final needsRefresh =
+                                                await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder:
+                                                        (context) =>
+                                                            DetailScreen(
+                                                              entry: entry,
+                                                            ),
+                                                  ),
+                                                );
+                                            if (needsRefresh == true) {
+                                              _refreshItems();
+                                            }
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // TODO: Handle button press
+                },
+                icon: Icon(Icons.add, size: 32),
+                label: Text('Add Item'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
