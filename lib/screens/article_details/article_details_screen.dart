@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../services/article_service.dart';
 import '../../models/article.dart';
+import '../../widgets/custom_bottom_nav.dart'; // Fixed import path
 
 class ArticleDetailsScreen extends StatefulWidget {
   final String articleId;
@@ -280,6 +281,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Artikel Details'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -319,6 +321,14 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
               ),
             ),
           );
+        },
+      ),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: -1, // No active item since this is a detail screen
+        onTap: (index) {
+          if (index == 0 || index == 1 || index == 2) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
         },
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/inventory_entry.dart';
 import '../../services/inventory_service.dart';
+import '../../widgets/custom_bottom_nav.dart';
 
 class DetailScreen extends StatefulWidget {
   final InventoryEntry entry;
@@ -67,6 +68,7 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Artikel Details'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -231,6 +233,14 @@ class _DetailScreenState extends State<DetailScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: -1, // No active item since this is a detail screen
+        onTap: (index) {
+          if (index == 0 || index == 1 || index == 2) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
+        },
       ),
     );
   }

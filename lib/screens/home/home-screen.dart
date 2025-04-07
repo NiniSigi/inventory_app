@@ -4,6 +4,7 @@ import '../../services/inventory_service.dart';
 import '../detail/detail_screen.dart';
 import '../scanner/qr_scanner_screen.dart';
 import '../article_details/article_details_screen.dart';
+import '../../widgets/custom_bottom_nav.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -43,9 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       print('Error in return handler: $e'); // Debug log
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to return item: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to return item: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -59,6 +63,56 @@ class _HomeScreenState extends State<HomeScreen> {
         .replaceAll('UE', 'Ü');
   }
 
+  void _onNavigationTap(int index) {
+    switch (index) {
+      case 0:
+        // Already on home
+        break;
+      case 1:
+        _handleSearch();
+        break;
+      case 2:
+        _handleSettings();
+        break;
+    }
+  }
+
+  void _handleSearch() {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Search coming soon')));
+  }
+
+  void _handleSettings() {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Settings coming soon')));
+  }
+
+  Future<void> _scanQR() async {
+    final scannedCode = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (context) => QRScannerScreen()),
+    );
+
+    if (scannedCode != null && mounted) {
+      final needsRefresh = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => ArticleDetailsScreen(
+                articleId: scannedCode,
+                defaultTeam: selectedTeam == '' ? null : selectedTeam,
+              ),
+        ),
+      );
+
+      if (needsRefresh == true) {
+        _refreshItems();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -66,164 +120,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Inventory Items'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(bottom: 80),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  margin: EdgeInsets.all(16),
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButton<String>(
-                    value: selectedTeam,
-                    isExpanded: true,
-                    hint: Text('Select Team'),
-                    items:
-                        teams.map((String team) {
-                          return DropdownMenuItem<String>(
-                            value: team,
-                            child: Text(
-                              team.isEmpty ? 'Kein Team' : convertUmlauts(team),
-                            ),
-                          );
-                        }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedTeam = newValue;
-                        _refreshItems();
-                      });
-                    },
-                  ),
-                ),
-                SizedBox(
-                  height: maxListHeight,
-                  child: FutureBuilder<List<InventoryEntry>>(
-                    future: _itemsFuture,
-                    builder: (context, snapshot) {
-                      return Container(
-                        margin: EdgeInsets.all(16),
-                        decoration:
-                            (!snapshot.hasData &&
-                                        snapshot.connectionState ==
-                                            ConnectionState.waiting) ||
-                                    (snapshot.hasData &&
-                                        snapshot.data!.isNotEmpty)
-                                ? BoxDecoration(
-                                  border: Border.all(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                )
-                                : null,
-                        child:
-                            snapshot.connectionState == ConnectionState.waiting
-                                ? Center(child: CircularProgressIndicator())
-                                : snapshot.hasError
-                                ? Center(
-                                  child: Text('Error: ${snapshot.error}'),
-                                )
-                                : !snapshot.hasData || snapshot.data!.isEmpty
-                                ? Center(child: Text('No items available'))
-                                : RefreshIndicator(
-                                  onRefresh: _refreshItems,
-                                  child: ListView.builder(
-                                    padding: EdgeInsets.all(16),
-                                    itemCount: snapshot.data!.length,
-                                    itemBuilder: (context, index) {
-                                      final entry = snapshot.data![index];
-                                      return Card(
-                                        elevation: 2,
-                                        margin: EdgeInsets.only(bottom: 16),
-                                        child: ListTile(
-                                          contentPadding: EdgeInsets.all(16),
-                                          leading: CircleAvatar(
-                                            backgroundColor:
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                            child: Text(
-                                              convertUmlauts(
-                                                entry.type.artikel[0]
-                                                    .toUpperCase(),
-                                              ),
-                                              style: TextStyle(
-                                                color:
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme.onPrimary,
-                                              ),
-                                            ),
-                                          ),
-                                          title: Text(
-                                            convertUmlauts(entry.type.artikel),
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          trailing: ElevatedButton(
-                                            onPressed:
-                                                entry.returnedAt == null
-                                                    ? () => _returnItem(
-                                                      entry.id.toString(),
-                                                    )
-                                                    : null,
-                                            style: ElevatedButton.styleFrom(
-                                              side: BorderSide(
-                                                color: Colors.green,
-                                                width: 2,
-                                              ),
-                                              foregroundColor: Colors.green,
-                                            ),
-                                            child: Text('Return'),
-                                          ),
-                                          onTap: () async {
-                                            final needsRefresh =
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder:
-                                                        (context) =>
-                                                            DetailScreen(
-                                                              entry: entry,
-                                                            ),
-                                                  ),
-                                                );
-                                            if (needsRefresh == true) {
-                                              _refreshItems();
-                                            }
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: Container(
+      body: Padding(
+        padding: EdgeInsets.only(bottom: 0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.all(16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Theme.of(context).colorScheme.primary,
@@ -231,47 +140,151 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  final scannedCode = await Navigator.push<String>(
-                    context,
-                    MaterialPageRoute(builder: (context) => QRScannerScreen()),
-                  );
-
-                  if (scannedCode != null) {
-                    if (!mounted) return;
-
-                    final needsRefresh = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ArticleDetailsScreen(
-                              articleId: scannedCode,
-                              defaultTeam:
-                                  selectedTeam == '' ? null : selectedTeam,
-                            ),
-                      ),
-                    );
-
-                    if (needsRefresh == true) {
-                      _refreshItems();
-                    }
-                  }
+              child: DropdownButton<String>(
+                value: selectedTeam,
+                isExpanded: true,
+                hint: Text('Select Team'),
+                items:
+                    teams.map((String team) {
+                      return DropdownMenuItem<String>(
+                        value: team,
+                        child: Text(
+                          team.isEmpty ? 'Kein Team' : convertUmlauts(team),
+                        ),
+                      );
+                    }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedTeam = newValue;
+                    _refreshItems();
+                  });
                 },
-                icon: Icon(Icons.add, size: 32),
-                label: Text('Add Item'),
+              ),
+            ),
+            SizedBox(
+              height: maxListHeight,
+              child: FutureBuilder<List<InventoryEntry>>(
+                future: _itemsFuture,
+                builder: (context, snapshot) {
+                  return Container(
+                    margin: EdgeInsets.all(16),
+                    decoration:
+                        (!snapshot.hasData &&
+                                    snapshot.connectionState ==
+                                        ConnectionState.waiting) ||
+                                (snapshot.hasData && snapshot.data!.isNotEmpty)
+                            ? BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            )
+                            : null,
+                    child:
+                        snapshot.connectionState == ConnectionState.waiting
+                            ? Center(child: CircularProgressIndicator())
+                            : snapshot.hasError
+                            ? Center(child: Text('Error: ${snapshot.error}'))
+                            : !snapshot.hasData || snapshot.data!.isEmpty
+                            ? Center(child: Text('No items available'))
+                            : RefreshIndicator(
+                              onRefresh: () async {
+                                await _refreshItems();
+                              },
+                              child: ListView.builder(
+                                padding: EdgeInsets.all(16),
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (context, index) {
+                                  final entry = snapshot.data![index];
+                                  return Card(
+                                    elevation: 2,
+                                    margin: EdgeInsets.only(bottom: 16),
+                                    child: ListTile(
+                                      contentPadding: EdgeInsets.all(16),
+                                      leading: CircleAvatar(
+                                        backgroundColor:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                        child: Text(
+                                          convertUmlauts(
+                                            entry.type.artikel[0].toUpperCase(),
+                                          ),
+                                          style: TextStyle(
+                                            color:
+                                                Theme.of(
+                                                  context,
+                                                ).colorScheme.onPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      title: Text(
+                                        convertUmlauts(entry.type.artikel),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      trailing: ElevatedButton(
+                                        onPressed:
+                                            entry.returnedAt == null
+                                                ? () => _returnItem(
+                                                  entry.id.toString(),
+                                                )
+                                                : null,
+                                        style: ElevatedButton.styleFrom(
+                                          side: BorderSide(
+                                            color: Colors.green,
+                                            width: 2,
+                                          ),
+                                          foregroundColor: Colors.green,
+                                        ),
+                                        child: Text('Return'),
+                                      ),
+                                      onTap: () async {
+                                        final needsRefresh =
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (context) => DetailScreen(
+                                                      entry: entry,
+                                                    ),
+                                              ),
+                                            );
+                                        if (needsRefresh == true) {
+                                          _refreshItems();
+                                        }
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                  );
+                },
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: _scanQR,
+                icon: Icon(Icons.add),
+                label: Text('Add New Item'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: 0,
+        onTap: _onNavigationTap,
       ),
     );
   }

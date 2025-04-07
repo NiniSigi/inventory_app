@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../../widgets/custom_bottom_nav.dart';
 
 class QRScannerScreen extends StatefulWidget {
   @override
@@ -13,6 +14,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Scan QR Code'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -21,12 +23,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             icon: ValueListenableBuilder(
               valueListenable: controller.torchState,
               builder: (context, state, child) {
-                switch (state) {
-                  case TorchState.off:
-                    return const Icon(Icons.flash_off);
-                  case TorchState.on:
-                    return const Icon(Icons.flash_on);
+                if (state == TorchState.off) {
+                  return const Icon(Icons.flash_off);
                 }
+                return const Icon(Icons.flash_on);
               },
             ),
             onPressed: () => controller.toggleTorch(),
@@ -35,12 +35,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             icon: ValueListenableBuilder(
               valueListenable: controller.cameraFacingState,
               builder: (context, state, child) {
-                switch (state) {
-                  case CameraFacing.front:
-                    return const Icon(Icons.camera_front);
-                  case CameraFacing.back:
-                    return const Icon(Icons.camera_rear);
+                if (state == CameraFacing.front) {
+                  return const Icon(Icons.camera_front);
                 }
+                return const Icon(Icons.camera_rear);
               },
             ),
             onPressed: () => controller.switchCamera(),
@@ -87,6 +85,14 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: -1, // No active item since this is a scanner screen
+        onTap: (index) {
+          if (index == 0 || index == 1 || index == 2) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
+        },
       ),
     );
   }
