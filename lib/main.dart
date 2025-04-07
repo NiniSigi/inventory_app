@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_app/screens/home/home-screen.dart';
-import 'package:inventory_app/screens/search_screen.dart';
-import 'package:inventory_app/screens/nav_screen.dart';
+import 'package:provider/provider.dart';
+import 'screens/home/home-screen.dart';
+import 'screens/search_screen.dart';
+import 'screens/nav_screen.dart';
+import 'providers/theme_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -12,13 +19,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Inventory App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const MainNavigationScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Inventory App',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.blue,
+              brightness: themeProvider.useSystemTheme
+                  ? MediaQuery.of(context).platformBrightness
+                  : themeProvider.isDarkMode
+                      ? Brightness.dark
+                      : Brightness.light,
+            ),
+            useMaterial3: true,
+          ),
+          home: const MainNavigationScreen(),
+        );
+      },
     );
   }
 }
@@ -49,24 +67,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onItemTapped,
+        destinations: const [
+          NavigationDestination(
             icon: Icon(Icons.home),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.search),
             label: 'Suche',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.menu),
             label: 'Menü',
           ),
         ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        onTap: _onItemTapped,
       ),
     );
   }
