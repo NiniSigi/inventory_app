@@ -4,6 +4,8 @@ import '../../models/inventory_entry.dart';
 import '../../services/inventory_service.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../search_screen.dart';
+import '../../main.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class QRScannerScreen extends StatefulWidget {
   @override
@@ -16,11 +18,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Scan QR Code'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      appBar: CustomAppBar(
+        title: 'Scan QR Code',
+        automaticallyImplyLeading: true,
         actions: [
           IconButton(
             icon: Icon(
@@ -44,65 +44,54 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           ),
         ],
       ),
-      body: Container(
-        margin: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.primary,
-            width: 2,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: Stack(
-            children: [
-              MobileScanner(
-                controller: controller,
-                onDetect: (BarcodeCapture capture) {
-                  if (capture.barcodes.isNotEmpty) {
-                    final scannedBarcode = capture.barcodes.first;
-                    if (scannedBarcode.rawValue != null) {
-                      String scannedValue = scannedBarcode.rawValue!;
-                      try {
-                        // Validate if it's a number
-                        int.parse(scannedValue);
-                        // Stop scanning before navigating
-                        controller.stop();
-                        Navigator.pop(context, scannedValue);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Please scan a valid number'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  }
-                },
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(8),
               ),
-              CustomPaint(painter: ScannerOverlay(), child: Container()),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: -1,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          } else if (index == 1) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => SearchScreen(),
-                settings: RouteSettings(name: '/search'),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Stack(
+                  children: [
+                    MobileScanner(
+                      controller: controller,
+                      onDetect: (BarcodeCapture capture) {
+                        if (capture.barcodes.isNotEmpty) {
+                          final scannedBarcode = capture.barcodes.first;
+                          if (scannedBarcode.rawValue != null) {
+                            String scannedValue = scannedBarcode.rawValue!;
+                            try {
+                              // Validate if it's a number
+                              int.parse(scannedValue);
+                              // Stop scanning before navigating
+                              controller.stop();
+                              Navigator.pop(context, scannedValue);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Please scan a valid number'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                    ),
+                    CustomPaint(painter: ScannerOverlay(), child: Container()),
+                  ],
+                ),
               ),
-            );
-          } else if (index == 2) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          }
-        },
+            ),
+          ),
+        ],
       ),
     );
   }

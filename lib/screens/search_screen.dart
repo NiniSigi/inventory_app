@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/inventory_entry.dart';
 import '../../services/inventory_service.dart';
-import '../../widgets/custom_bottom_nav.dart';
-import 'article_info/article_info_screen.dart';
 import 'home/home-screen.dart';
+import 'article_info/article_info_screen.dart';
+import '../../main.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -320,7 +320,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(12),
                                 onTap: () {
-                                  Navigator.pushReplacement(
+                                  Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => ArticleInfoScreen(entry: entry),
@@ -401,24 +401,6 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 1,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(),
-                settings: RouteSettings(name: '/home'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 1) {
-            // Already on search screen
-          } else if (index == 2) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          }
-        },
       ),
     );
   }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../home/home-screen.dart';
 import '../search_screen.dart';
-import '../../widgets/custom_bottom_nav.dart';
+import '../../main.dart';
 
 class ScannerScreen extends StatefulWidget {
-  // ... (existing code)
+  const ScannerScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ScannerScreen> createState() => _ScannerScreenState();
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
@@ -20,30 +23,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ),
       body: Center(
         child: Text('Scanner Screen Content'),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: -1,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(),
-                settings: RouteSettings(name: '/home'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 1) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => SearchScreen(),
-                settings: RouteSettings(name: '/search'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 2) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          }
-        },
       ),
     );
   }

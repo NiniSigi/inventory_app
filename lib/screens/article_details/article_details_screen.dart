@@ -5,6 +5,8 @@ import '../../widgets/custom_bottom_nav.dart';
 import '../search_screen.dart';
 import '../../services/inventory_service.dart';
 import '../home/home-screen.dart';
+import '../../main.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ArticleDetailsScreen extends StatefulWidget {
   final String articleId;
@@ -282,14 +284,11 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Artikel Details'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      appBar: CustomAppBar(
+        title: 'Artikel Details',
+        automaticallyImplyLeading: true,
       ),
       body: FutureBuilder<Artikel>(
-        // Changed from Article to Artikel
         future: articleFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -306,48 +305,30 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
 
           final article = snapshot.data!;
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    convertUmlauts(article.artikel),
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          convertUmlauts(article.artikel),
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 24),
+                        _buildEntrySection(context, article),
+                        SizedBox(height: 24),
+                        _buildArticleInformation(context, article),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 24),
-                  _buildEntrySection(context, article),
-                  SizedBox(height: 24),
-                  _buildArticleInformation(context, article),
-                ],
+                ),
               ),
-            ),
+            ],
           );
-        },
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: -1,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(),
-                settings: RouteSettings(name: '/home'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 1) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => SearchScreen(),
-                settings: RouteSettings(name: '/search'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 2) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          }
         },
       ),
     );

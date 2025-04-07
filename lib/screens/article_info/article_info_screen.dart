@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/inventory_entry.dart';
-import '../../widgets/custom_bottom_nav.dart';
+import '../../services/inventory_service.dart';
+import '../../main.dart';
 import '../search_screen.dart';
 import '../home/home-screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ArticleInfoScreen extends StatelessWidget {
   final InventoryEntry entry;
@@ -62,114 +64,94 @@ class ArticleInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Artikel Information'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      appBar: CustomAppBar(
+        title: 'Artikel Information',
+        automaticallyImplyLeading: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                convertUmlauts(entry.type.artikel),
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 24),
-
-              // Article Information Section
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(6),
-                          topRight: Radius.circular(6),
-                        ),
-                      ),
-                      child: Text(
-                        'Artikel Information',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
+                    Text(
+                      convertUmlauts(entry.type.artikel),
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
+                    SizedBox(height: 24),
+
+                    // Article Information Section
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildInfoRow(
-                            context,
-                            'Lager',
-                            convertUmlauts(entry.type.lager),
-                            'Einheit',
-                            convertUmlauts(entry.type.einheit.name),
-                          ),
-                          SizedBox(height: 16),
-                          _buildInfoRow(
-                            context,
-                            'Total Menge',
-                            entry.type.menge.toString(),
-                            'Rubrik',
-                            convertUmlauts(entry.type.rubrik),
-                          ),
-                          if (entry.type.groesse != null) ...[
-                            SizedBox(height: 16),
-                            _buildInfoCard(
-                              'Größe',
-                              convertUmlauts(entry.type.groesse!),
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(6),
+                                topRight: Radius.circular(6),
+                              ),
                             ),
-                          ],
+                            child: Text(
+                              'Artikel Information',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                _buildInfoRow(
+                                  context,
+                                  'Lager',
+                                  convertUmlauts(entry.type.lager),
+                                  'Einheit',
+                                  convertUmlauts(entry.type.einheit.name),
+                                ),
+                                SizedBox(height: 16),
+                                _buildInfoRow(
+                                  context,
+                                  'Total Menge',
+                                  entry.type.menge.toString(),
+                                  'Rubrik',
+                                  convertUmlauts(entry.type.rubrik),
+                                ),
+                                if (entry.type.groesse != null) ...[
+                                  SizedBox(height: 16),
+                                  _buildInfoCard(
+                                    'Größe',
+                                    convertUmlauts(entry.type.groesse!),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: -1,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(),
-                settings: RouteSettings(name: '/home'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 1) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => SearchScreen(),
-                settings: RouteSettings(name: '/search'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 2) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          }
-        },
+        ],
       ),
     );
   }

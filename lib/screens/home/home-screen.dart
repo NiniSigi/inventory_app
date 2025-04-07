@@ -5,7 +5,6 @@ import '../detail/detail_screen.dart';
 import '../scanner/qr_scanner_screen.dart';
 import '../article_details/article_details_screen.dart';
 import '../search_screen.dart';
-import '../../widgets/custom_bottom_nav.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -62,57 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .replaceAll('AE', 'Ä')
         .replaceAll('OE', 'Ö')
         .replaceAll('UE', 'Ü');
-  }
-
-  void _onNavigationTap(int index) {
-    switch (index) {
-      case 0:
-        // Already on home
-        break;
-      case 1:
-        _handleSearch();
-        break;
-      case 2:
-        _handleSettings();
-        break;
-    }
-  }
-
-  void _handleSearch() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SearchScreen()),
-    );
-  }
-
-  void _handleSettings() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Settings coming soon')));
-  }
-
-  Future<void> _scanQR() async {
-    final scannedCode = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(builder: (context) => QRScannerScreen()),
-    );
-
-    if (scannedCode != null && mounted) {
-      final needsRefresh = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (context) => ArticleDetailsScreen(
-                articleId: scannedCode,
-                defaultTeam: selectedTeam == '' ? null : selectedTeam,
-              ),
-        ),
-      );
-
-      if (needsRefresh == true) {
-        _refreshItems();
-      }
-    }
   }
 
   @override
@@ -292,10 +240,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 0,
-        onTap: _onNavigationTap,
-      ),
     );
+  }
+
+  Future<void> _scanQR() async {
+    final scannedCode = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (context) => QRScannerScreen()),
+    );
+
+    if (scannedCode != null && mounted) {
+      final needsRefresh = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ArticleDetailsScreen(
+            articleId: scannedCode,
+            defaultTeam: selectedTeam == '' ? null : selectedTeam,
+          ),
+        ),
+      );
+
+      if (needsRefresh == true) {
+        _refreshItems();
+      }
+    }
   }
 }

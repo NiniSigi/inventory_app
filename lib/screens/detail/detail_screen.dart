@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/inventory_entry.dart';
 import '../../services/inventory_service.dart';
-import '../../widgets/custom_bottom_nav.dart';
+import '../../main.dart';
 import '../search_screen.dart';
 import '../home/home-screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class DetailScreen extends StatefulWidget {
   final InventoryEntry entry;
@@ -69,196 +70,174 @@ class _DetailScreenState extends State<DetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Artikel Details'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      appBar: CustomAppBar(
+        title: 'Artikel Details',
+        automaticallyImplyLeading: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                convertUmlauts(widget.entry.type.artikel),
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 24),
-
-              // First Section: Entry Details
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(6),
-                          topRight: Radius.circular(6),
-                        ),
-                      ),
-                      child: Text(
-                        'Ausleih Details',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
+                    Text(
+                      convertUmlauts(widget.entry.type.artikel),
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
+                    SizedBox(height: 24),
+
+                    // First Section: Entry Details
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildInfoRow(
-                            context,
-                            'Team',
-                            convertUmlauts(widget.entry.teamName.name),
-                            'Menge',
-                            '${widget.entry.amountOfItem} ${convertUmlauts(widget.entry.type.einheit.name)}',
-                          ),
-                          SizedBox(height: 16),
-                          _buildInfoCard(
-                            'Ausgeliehen am',
-                            formatDate(widget.entry.startedAt),
-                          ),
-                          if (widget.entry.returnedAt != null) ...[
-                            SizedBox(height: 16),
-                            _buildInfoCard(
-                              'Zurückgegeben am',
-                              formatDate(widget.entry.returnedAt!),
-                            ),
-                          ] else ...[
-                            SizedBox(height: 24),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: () => _handleReturn(context),
-                                style: ElevatedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: Colors.green,
-                                    width: 2,
-                                  ),
-                                  foregroundColor: Colors.green,
-                                ),
-                                child: Text('Return Item'),
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(6),
+                                topRight: Radius.circular(6),
                               ),
                             ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // Second Section: Article Details
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(6),
-                          topRight: Radius.circular(6),
-                        ),
-                      ),
-                      child: Text(
-                        'Artikel Information',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          _buildInfoRow(
-                            context,
-                            'Lager',
-                            convertUmlauts(widget.entry.type.lager),
-                            'Einheit',
-                            convertUmlauts(widget.entry.type.einheit.name),
-                          ),
-                          SizedBox(height: 16),
-                          _buildInfoRow(
-                            context,
-                            'Total Menge',
-                            widget.entry.type.menge.toString(),
-                            'Rubrik',
-                            convertUmlauts(widget.entry.type.rubrik),
-                          ),
-                          if (widget.entry.type.groesse != null) ...[
-                            SizedBox(height: 16),
-                            _buildInfoCard(
-                              'Größe',
-                              convertUmlauts(widget.entry.type.groesse!),
+                            child: Text(
+                              'Ausleih Details',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              ),
                             ),
-                          ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                _buildInfoRow(
+                                  context,
+                                  'Team',
+                                  convertUmlauts(widget.entry.teamName.name),
+                                  'Menge',
+                                  '${widget.entry.amountOfItem} ${convertUmlauts(widget.entry.type.einheit.name)}',
+                                ),
+                                SizedBox(height: 16),
+                                _buildInfoCard(
+                                  'Ausgeliehen am',
+                                  formatDate(widget.entry.startedAt),
+                                ),
+                                if (widget.entry.returnedAt != null) ...[
+                                  SizedBox(height: 16),
+                                  _buildInfoCard(
+                                    'Zurückgegeben am',
+                                    formatDate(widget.entry.returnedAt!),
+                                  ),
+                                ] else ...[
+                                  SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 50,
+                                    child: ElevatedButton(
+                                      onPressed: () => _handleReturn(context),
+                                      style: ElevatedButton.styleFrom(
+                                        side: BorderSide(
+                                          color: Colors.green,
+                                          width: 2,
+                                        ),
+                                        foregroundColor: Colors.green,
+                                      ),
+                                      child: Text('Return Item'),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: 24),
+
+                    // Second Section: Article Details
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(6),
+                                topRight: Radius.circular(6),
+                              ),
+                            ),
+                            child: Text(
+                              'Artikel Information',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                _buildInfoRow(
+                                  context,
+                                  'Lager',
+                                  convertUmlauts(widget.entry.type.lager),
+                                  'Einheit',
+                                  convertUmlauts(widget.entry.type.einheit.name),
+                                ),
+                                SizedBox(height: 16),
+                                _buildInfoRow(
+                                  context,
+                                  'Total Menge',
+                                  widget.entry.type.menge.toString(),
+                                  'Rubrik',
+                                  convertUmlauts(widget.entry.type.rubrik),
+                                ),
+                                if (widget.entry.type.groesse != null) ...[
+                                  SizedBox(height: 16),
+                                  _buildInfoCard(
+                                    'Größe',
+                                    convertUmlauts(widget.entry.type.groesse!),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: -1, // No active item since this is a detail screen
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(),
-                settings: RouteSettings(name: '/home'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 1) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => SearchScreen(),
-                settings: RouteSettings(name: '/search'),
-              ),
-              (route) => false,
-            );
-          } else if (index == 2) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          }
-        },
+        ],
       ),
     );
   }
