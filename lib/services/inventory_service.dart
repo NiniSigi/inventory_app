@@ -6,21 +6,66 @@ import '../models/inventory_entry.dart';
 Future<List<InventoryEntry>> fetchItems({String? teamName}) async {
   final baseUrl =
       'https://inventory-backend-pink.vercel.app/api/entries/unreturned';
+  
+  // Convert team name to API format (remove umlauts)
+  String? apiTeamName;
+  if (teamName != null && teamName.isNotEmpty) {
+    apiTeamName = teamName
+        .replaceAll('ä', 'ae')
+        .replaceAll('ö', 'oe')
+        .replaceAll('ü', 'ue')
+        .replaceAll('Ä', 'AE')
+        .replaceAll('Ö', 'OE')
+        .replaceAll('Ü', 'UE');
+  }
+  
   final url =
-      teamName != null && teamName.isNotEmpty
-          ? '$baseUrl?teamName=$teamName'
+      apiTeamName != null
+          ? '$baseUrl?teamName=$apiTeamName'
           : baseUrl;
 
   final response = await http.get(Uri.parse(url));
 
   if (response.statusCode == 200) {
     List<dynamic> jsonList = json.decode(response.body);
-    List<InventoryEntry> entries =
-        jsonList.map((json) => InventoryEntry.fromJson(json)).toList();
+    List<InventoryEntry> entries = [];
+
+    for (var json in jsonList) {
+      try {
+        // Create a minimal Artikel object with the available data
+        final artikel = Artikel(
+          id: int.parse(json['id']),
+          artikel: json['artikel'],
+          lager: '', // Default value since it's not in the response
+          menge: 1, // Default value since it's not in the response
+          einheit: Einheit.STUECK, // Default value since it's not in the response
+          rubrik: '', // Default value since it's not in the response
+        );
+
+        // Create the entry with the available data
+        final entry = InventoryEntry(
+          id: int.parse(json['id']),
+          startedAt: DateTime.parse(json['date']),
+          returnedAt: null,
+          teamName: Team.values.firstWhere(
+            (t) => t.toString() == 'Team.${json['name']}',
+            orElse: () => throw Exception('Invalid team name: ${json['name']}'),
+          ),
+          typeId: int.parse(json['id']),
+          amountOfItem: 1, // Default value since it's not in the response
+          type: artikel,
+        );
+
+        entries.add(entry);
+      } catch (e) {
+        print('Error processing entry: $e');
+        continue;
+      }
+    }
 
     return entries;
   } else {
-    throw Exception('Failed to load items');
+    throw Exception('Failed to load items: ${response.statusCode}');
   }
 }
 
