@@ -71,7 +71,7 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Artikel Details',
+        title: 'Article Details',
         automaticallyImplyLeading: true,
       ),
       body: Column(
@@ -84,7 +84,7 @@ class _DetailScreenState extends State<DetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      convertUmlauts(widget.entry.type.artikel),
+                      convertUmlauts(widget.entry.type.name),
                       style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 24),
@@ -112,7 +112,7 @@ class _DetailScreenState extends State<DetailScreen> {
                               ),
                             ),
                             child: Text(
-                              'Ausleih Details',
+                              'Borrow Details',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -128,18 +128,18 @@ class _DetailScreenState extends State<DetailScreen> {
                                   context,
                                   'Team',
                                   convertUmlauts(widget.entry.teamName.name),
-                                  'Menge',
-                                  '${widget.entry.amountOfItem} ${convertUmlauts(widget.entry.type.einheit.name)}',
+                                  'Quantity',
+                                  '${widget.entry.amountOfItem} ${convertUmlauts(widget.entry.type.unit.name)}',
                                 ),
                                 SizedBox(height: 16),
                                 _buildInfoCard(
-                                  'Ausgeliehen am',
+                                  'Borrowed on',
                                   formatDate(widget.entry.startedAt),
                                 ),
                                 if (widget.entry.returnedAt != null) ...[
                                   SizedBox(height: 16),
                                   _buildInfoCard(
-                                    'Zurückgegeben am',
+                                    'Returned on',
                                     formatDate(widget.entry.returnedAt!),
                                   ),
                                 ] else ...[
@@ -192,7 +192,7 @@ class _DetailScreenState extends State<DetailScreen> {
                               ),
                             ),
                             child: Text(
-                              'Artikel Information',
+                              'Article Information',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -206,25 +206,22 @@ class _DetailScreenState extends State<DetailScreen> {
                               children: [
                                 _buildInfoRow(
                                   context,
-                                  'Lager',
-                                  convertUmlauts(widget.entry.type.lager),
-                                  'Einheit',
-                                  convertUmlauts(widget.entry.type.einheit.name),
+                                  'Location',
+                                  convertUmlauts(widget.entry.type.location),
+                                  'Unit',
+                                  convertUmlauts(widget.entry.type.unit.name),
                                 ),
                                 SizedBox(height: 16),
                                 _buildInfoRow(
                                   context,
-                                  'Total Menge',
-                                  widget.entry.type.menge.toString(),
-                                  'Rubrik',
-                                  convertUmlauts(widget.entry.type.rubrik),
+                                  'Total Quantity',
+                                  widget.entry.type.quantity.toString(),
+                                  'Category',
+                                  convertUmlauts(widget.entry.type.category),
                                 ),
-                                if (widget.entry.type.groesse != null) ...[
+                                if (widget.entry.type.size != null) ...[
                                   SizedBox(height: 16),
-                                  _buildInfoCard(
-                                    'Größe',
-                                    convertUmlauts(widget.entry.type.groesse!),
-                                  ),
+                                  _buildInfoCard('Size', convertUmlauts(widget.entry.type.size!)),
                                 ],
                               ],
                             ),

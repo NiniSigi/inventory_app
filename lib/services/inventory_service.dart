@@ -4,69 +4,78 @@ import 'package:intl/intl.dart';
 import '../models/inventory_entry.dart';
 
 Future<List<InventoryEntry>> fetchItems({String? teamName}) async {
-  final baseUrl =
-      'https://inventory-backend-pink.vercel.app/api/entries/unreturned';
-  
-  // Convert team name to API format (remove umlauts)
-  String? apiTeamName;
-  if (teamName != null && teamName.isNotEmpty) {
-    apiTeamName = teamName
-        .replaceAll('ä', 'ae')
-        .replaceAll('ö', 'oe')
-        .replaceAll('ü', 'ue')
-        .replaceAll('Ä', 'AE')
-        .replaceAll('Ö', 'OE')
-        .replaceAll('Ü', 'UE');
-  }
-  
-  final url =
-      apiTeamName != null
-          ? '$baseUrl?teamName=$apiTeamName'
-          : baseUrl;
-
+  final baseUrl = 'https://inventory-backend-pink.vercel.app/api/entries/unreturned';
+  final url = _buildUrl(baseUrl, teamName);
   final response = await http.get(Uri.parse(url));
 
   if (response.statusCode == 200) {
-    List<dynamic> jsonList = json.decode(response.body);
-    List<InventoryEntry> entries = [];
-
-    for (var json in jsonList) {
-      try {
-        // Create a minimal Artikel object with the available data
-        final artikel = Artikel(
-          id: int.parse(json['id']),
-          artikel: json['artikel'],
-          lager: '', // Default value since it's not in the response
-          menge: 1, // Default value since it's not in the response
-          einheit: Einheit.STUECK, // Default value since it's not in the response
-          rubrik: '', // Default value since it's not in the response
-        );
-
-        // Create the entry with the available data
-        final entry = InventoryEntry(
-          id: int.parse(json['id']),
-          startedAt: DateTime.parse(json['date']),
-          returnedAt: null,
-          teamName: Team.values.firstWhere(
-            (t) => t.toString() == 'Team.${json['name']}',
-            orElse: () => throw Exception('Invalid team name: ${json['name']}'),
-          ),
-          typeId: int.parse(json['id']),
-          amountOfItem: 1, // Default value since it's not in the response
-          type: artikel,
-        );
-
-        entries.add(entry);
-      } catch (e) {
-        print('Error processing entry: $e');
-        continue;
-      }
-    }
-
-    return entries;
+    return _parseResponse(response.body);
   } else {
     throw Exception('Failed to load items: ${response.statusCode}');
   }
+}
+
+String _buildUrl(String baseUrl, String? teamName) {
+  if (teamName == null || teamName.isEmpty) {
+    return baseUrl;
+  }
+  
+  final apiTeamName = _convertTeamName(teamName);
+  return '$baseUrl?teamName=$apiTeamName';
+}
+
+String _convertTeamName(String teamName) {
+  return teamName
+      .replaceAll('ä', 'ae')
+      .replaceAll('ö', 'oe')
+      .replaceAll('ü', 'ue')
+      .replaceAll('Ä', 'AE')
+      .replaceAll('Ö', 'OE')
+      .replaceAll('Ü', 'UE');
+}
+
+List<InventoryEntry> _parseResponse(String responseBody) {
+  List<dynamic> jsonList = json.decode(responseBody);
+  List<InventoryEntry> entries = [];
+
+  for (var json in jsonList) {
+    try {
+      entries.add(_createEntryFromJson(json));
+    } catch (e) {
+      print('Error processing entry: $e');
+      continue;
+    }
+  }
+
+  return entries;
+}
+
+InventoryEntry _createEntryFromJson(Map<String, dynamic> json) {
+  final article = _createMinimalArticle(json);
+  
+  return InventoryEntry(
+    id: int.parse(json['id']),
+    startedAt: DateTime.parse(json['date']),
+    returnedAt: null,
+    teamName: Team.values.firstWhere(
+      (t) => t.toString() == 'Team.${json['name']}',
+      orElse: () => throw Exception('Invalid team name: ${json['name']}'),
+    ),
+    typeId: int.parse(json['id']),
+    amountOfItem: 1,
+    type: article,
+  );
+}
+
+Article _createMinimalArticle(Map<String, dynamic> json) {
+  return Article(
+    id: int.parse(json['id']),
+    name: json['artikel'],
+    location: '',
+    quantity: 1,
+    unit: Unit.STUECK,
+    category: '',
+  );
 }
 
 Future<bool> returnItem(String entryId) async {
@@ -108,14 +117,14 @@ class InventoryService {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((item) {
-          final artikel = Artikel.fromJson(item);
+          final article = Article.fromJson(item);
           return InventoryEntry(
-            id: artikel.id,
+            id: article.id,
             startedAt: DateTime.now(),
             teamName: Team.SPAEHER,
-            typeId: artikel.id,
-            amountOfItem: artikel.menge,
-            type: artikel,
+            typeId: article.id,
+            amountOfItem: article.quantity,
+            type: article,
           );
         }).toList();
       } else {
@@ -126,7 +135,7 @@ class InventoryService {
     }
   }
 
-  Future<Artikel> getArticleById(String id) async {
+  Future<Article> getArticleById(String id) async {
     try {
       final response = await http.get(
         Uri.parse('https://inventory-backend-pink.vercel.app/api/types/$id'),
@@ -134,7 +143,7 @@ class InventoryService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return Artikel.fromJson(data);
+        return Article.fromJson(data);
       } else {
         throw Exception('Failed to load article');
       }

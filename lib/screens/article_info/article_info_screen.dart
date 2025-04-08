@@ -65,7 +65,7 @@ class ArticleInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Artikel Information',
+        title: 'Article Information',
         automaticallyImplyLeading: true,
       ),
       body: Column(
@@ -78,7 +78,7 @@ class ArticleInfoScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      convertUmlauts(entry.type.artikel),
+                      convertUmlauts(entry.type.name),
                       style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 24),
@@ -106,7 +106,7 @@ class ArticleInfoScreen extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              'Artikel Information',
+                              'Article Information',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -120,25 +120,22 @@ class ArticleInfoScreen extends StatelessWidget {
                               children: [
                                 _buildInfoRow(
                                   context,
-                                  'Lager',
-                                  convertUmlauts(entry.type.lager),
-                                  'Einheit',
-                                  convertUmlauts(entry.type.einheit.name),
+                                  'Location',
+                                  convertUmlauts(entry.type.location),
+                                  'Unit',
+                                  convertUmlauts(entry.type.unit.name),
                                 ),
                                 SizedBox(height: 16),
                                 _buildInfoRow(
                                   context,
-                                  'Total Menge',
-                                  entry.type.menge.toString(),
-                                  'Rubrik',
-                                  convertUmlauts(entry.type.rubrik),
+                                  'Total Quantity',
+                                  entry.type.quantity.toString(),
+                                  'Category',
+                                  convertUmlauts(entry.type.category),
                                 ),
-                                if (entry.type.groesse != null) ...[
+                                if (entry.type.size != null) ...[
                                   SizedBox(height: 16),
-                                  _buildInfoCard(
-                                    'Größe',
-                                    convertUmlauts(entry.type.groesse!),
-                                  ),
+                                  _buildInfoCard('Size', convertUmlauts(entry.type.size!)),
                                 ],
                               ],
                             ),

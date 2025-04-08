@@ -18,10 +18,10 @@ class _SearchScreenState extends State<SearchScreen> {
   List<InventoryEntry> _allInventory = [];
   List<InventoryEntry> _filteredInventory = [];
   bool _isLoading = false;
-  String? _selectedLager;
-  String? _selectedRubrik;
-  Set<String> _uniqueLager = {};
-  Set<String> _uniqueRubrik = {};
+  String? _selectedLocation;
+  String? _selectedCategory;
+  Set<String> _uniqueLocation = {};
+  Set<String> _uniqueCategory = {};
 
   String convertUmlauts(String text) {
     return text
@@ -65,13 +65,13 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() {
         _allInventory = inventory;
         _filteredInventory = inventory;
-        _uniqueLager = inventory
-            .map((e) => e.type.lager)
-            .where((lager) => lager.isNotEmpty && RegExp(r'^[A-Za-zÄäÖöÜü]').hasMatch(lager))
+        _uniqueLocation = inventory
+            .map((e) => e.type.location)
+            .where((location) => location.isNotEmpty && RegExp(r'^[A-Za-zÄäÖöÜü]').hasMatch(location))
             .toSet();
-        _uniqueRubrik = inventory
-            .map((e) => e.type.rubrik)
-            .where((rubrik) => rubrik.isNotEmpty)
+        _uniqueCategory = inventory
+            .map((e) => e.type.category)
+            .where((category) => category.isNotEmpty)
             .toSet();
         _isLoading = false;
       });
@@ -87,17 +87,18 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _filterInventory(String query) {
     setState(() {
-      if (query.isEmpty && _selectedLager == null && _selectedRubrik == null) {
+      if (query.isEmpty && _selectedLocation == null && _selectedCategory == null) {
         _filteredInventory = _allInventory;
       } else {
         final searchTerm = convertUmlautsForSearch(query.toLowerCase());
         _filteredInventory = _allInventory.where((entry) {
-          final articleName = convertUmlautsForSearch(entry.type.artikel.toLowerCase());
+          final articleName = convertUmlautsForSearch(entry.type.name.toLowerCase());
           final matchesSearch = query.isEmpty || articleName.contains(searchTerm);
-          final matchesLager = _selectedLager == null || 
-            (_selectedLager!.length == 1 && entry.type.lager.startsWith(_selectedLager!));
-          final matchesRubrik = _selectedRubrik == null || entry.type.rubrik == _selectedRubrik;
-          return matchesSearch && matchesLager && matchesRubrik;
+          final matchesLocation = _selectedLocation == null || 
+            entry.type.location.toLowerCase() == _selectedLocation!.toLowerCase();
+          final matchesCategory = _selectedCategory == null || 
+            entry.type.category.toLowerCase() == _selectedCategory!.toLowerCase();
+          return matchesSearch && matchesLocation && matchesCategory;
         }).toList();
       }
     });
@@ -105,21 +106,21 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sortedLager = _uniqueLager.toList()..sort();
-    final sortedRubrik = _uniqueRubrik.toList()..sort();
+    final sortedLocation = _uniqueLocation.toList()..sort();
+    final sortedCategory = _uniqueCategory.toList()..sort();
 
-    final uniqueFirstLetters = sortedLager
-        .where((lager) => lager.isNotEmpty && RegExp(r'^[A-Za-zÄäÖöÜü]').hasMatch(lager))
-        .map((lager) => lager[0].toUpperCase())
+    final uniqueFirstLetters = sortedLocation
+        .where((location) => location.isNotEmpty && RegExp(r'^[A-Za-zÄäÖöÜü]').hasMatch(location))
+        .map((location) => location[0].toUpperCase())
         .toSet()
         .toList()
       ..sort();
 
-    if (_selectedLager != null && !uniqueFirstLetters.contains(_selectedLager)) {
-      _selectedLager = null;
+    if (_selectedLocation != null && !uniqueFirstLetters.contains(_selectedLocation)) {
+      _selectedLocation = null;
     }
-    if (_selectedRubrik != null && !sortedRubrik.contains(_selectedRubrik)) {
-      _selectedRubrik = null;
+    if (_selectedCategory != null && !sortedCategory.contains(_selectedCategory)) {
+      _selectedCategory = null;
     }
 
     return Scaffold(
@@ -136,7 +137,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Artikel suchen...',
+                  hintText: 'Search articles...',
                   prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -168,7 +169,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           Padding(
                             padding: const EdgeInsets.only(left: 4, bottom: 2),
                             child: Text(
-                              'Lager',
+                              'Location',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -183,11 +184,11 @@ class _SearchScreenState extends State<SearchScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: DropdownButton<String>(
-                              value: _selectedLager == null ? 'hint' : _selectedLager,
+                              value: _selectedLocation == null ? 'hint' : _selectedLocation,
                               isExpanded: true,
                               padding: EdgeInsets.symmetric(horizontal: 16),
                               underline: SizedBox(),
-                              hint: Text('Sortiert', textAlign: TextAlign.center),
+                              hint: Text('Sorted', textAlign: TextAlign.center),
                               menuMaxHeight: 200,
                               icon: Icon(Icons.arrow_drop_down),
                               dropdownColor: Theme.of(context).colorScheme.surface,
@@ -195,7 +196,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               isDense: false,
                               alignment: AlignmentDirectional.center,
                               items: [
-                                DropdownMenuItem(value: 'hint', child: Text('Sortiert', textAlign: TextAlign.center)),
+                                DropdownMenuItem(value: 'hint', child: Text('Sorted', textAlign: TextAlign.center)),
                                 for (final letter in uniqueFirstLetters)
                                   DropdownMenuItem<String>(
                                     value: letter,
@@ -204,7 +205,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ],
                               onChanged: (value) {
                                 setState(() {
-                                  _selectedLager = value == 'hint' ? null : value;
+                                  _selectedLocation = value == 'hint' ? null : value;
                                   _filterInventory(_searchController.text);
                                 });
                               },
@@ -213,9 +214,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         ],
                       ),
                     ),
-                  if (uniqueFirstLetters.isNotEmpty && sortedRubrik.isNotEmpty)
+                  if (uniqueFirstLetters.isNotEmpty && sortedCategory.isNotEmpty)
                     SizedBox(width: 16),
-                  if (sortedRubrik.isNotEmpty)
+                  if (sortedCategory.isNotEmpty)
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +224,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           Padding(
                             padding: const EdgeInsets.only(left: 4, bottom: 2),
                             child: Text(
-                              'Rubrik',
+                              'Category',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -238,11 +239,11 @@ class _SearchScreenState extends State<SearchScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: DropdownButton<String>(
-                              value: _selectedRubrik == null ? 'hint' : _selectedRubrik,
+                              value: _selectedCategory == null ? 'hint' : _selectedCategory,
                               isExpanded: true,
                               padding: EdgeInsets.symmetric(horizontal: 16),
                               underline: SizedBox(),
-                              hint: Text('Sortiert', textAlign: TextAlign.center),
+                              hint: Text('Sorted', textAlign: TextAlign.center),
                               menuMaxHeight: 200,
                               icon: Icon(Icons.arrow_drop_down),
                               dropdownColor: Theme.of(context).colorScheme.surface,
@@ -250,16 +251,16 @@ class _SearchScreenState extends State<SearchScreen> {
                               isDense: false,
                               alignment: AlignmentDirectional.center,
                               items: [
-                                DropdownMenuItem(value: 'hint', child: Text('Sortiert', textAlign: TextAlign.center)),
-                                for (final rubrik in sortedRubrik)
+                                DropdownMenuItem(value: 'hint', child: Text('Sorted', textAlign: TextAlign.center)),
+                                for (final category in sortedCategory)
                                   DropdownMenuItem<String>(
-                                    value: rubrik,
-                                    child: Text(convertUmlauts(rubrik), textAlign: TextAlign.center),
+                                    value: category,
+                                    child: Text(convertUmlauts(category), textAlign: TextAlign.center),
                                   ),
                               ],
                               onChanged: (value) {
                                 setState(() {
-                                  _selectedRubrik = value == 'hint' ? null : value;
+                                  _selectedCategory = value == 'hint' ? null : value;
                                   _filterInventory(_searchController.text);
                                 });
                               },
@@ -287,7 +288,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                _searchController.text.isEmpty && _selectedLager == null && _selectedRubrik == null
+                                _searchController.text.isEmpty && _selectedLocation == null && _selectedCategory == null
                                     ? Icons.inventory_2_outlined
                                     : Icons.search_off,
                                 size: 64,
@@ -295,9 +296,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                               SizedBox(height: 16),
                               Text(
-                                _searchController.text.isEmpty && _selectedLager == null && _selectedRubrik == null
-                                    ? 'Geben Sie einen Suchbegriff ein'
-                                    : 'Keine Artikel gefunden',
+                                _searchController.text.isEmpty && _selectedLocation == null && _selectedCategory == null
+                                    ? 'Enter a search term'
+                                    : 'No articles found',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey[600],
@@ -343,7 +344,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                             ),
                                             child: Center(
                                               child: Text(
-                                                convertUmlauts(entry.type.artikel)[0].toUpperCase(),
+                                                convertUmlauts(entry.type.name)[0].toUpperCase(),
                                                 style: TextStyle(
                                                   color: Theme.of(context).colorScheme.onPrimary,
                                                   fontWeight: FontWeight.bold,
@@ -354,7 +355,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                           SizedBox(width: 16),
                                           Expanded(
                                             child: Text(
-                                              convertUmlauts(entry.type.artikel),
+                                              convertUmlauts(entry.type.name),
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w500,
@@ -373,7 +374,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                           Icon(Icons.warehouse, size: 16, color: Colors.grey[600]),
                                           SizedBox(width: 4),
                                           Text(
-                                            convertUmlauts(entry.type.lager),
+                                            convertUmlauts(entry.type.location),
                                             style: TextStyle(
                                               fontSize: 14,
                                               color: Colors.grey[600],
@@ -383,7 +384,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                           Icon(Icons.category, size: 16, color: Colors.grey[600]),
                                           SizedBox(width: 4),
                                           Text(
-                                            convertUmlauts(entry.type.rubrik),
+                                            convertUmlauts(entry.type.category),
                                             style: TextStyle(
                                               fontSize: 14,
                                               color: Colors.grey[600],

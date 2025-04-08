@@ -1,6 +1,6 @@
 enum Team { SPAEHER, AMEISLI }
 
-enum Einheit {
+enum Unit {
   STUECK,
   KISTE,
   KARTON,
@@ -23,38 +23,38 @@ enum Einheit {
   FARBEN,
 }
 
-class Artikel {
+class Article {
   final int id;
-  final String artikel;
-  final String lager;
-  final int menge;
-  final Einheit einheit;
-  final String? groesse;
-  final String rubrik;
+  final String name;
+  final String location;
+  final int quantity;
+  final Unit unit;
+  final String? size;
+  final String category;
   final List<InventoryEntry> entries;
 
-  Artikel({
+  Article({
     required this.id,
-    required this.artikel,
-    required this.lager,
-    required this.menge,
-    required this.einheit,
-    this.groesse,
-    required this.rubrik,
+    required this.name,
+    required this.location,
+    required this.quantity,
+    required this.unit,
+    this.size,
+    required this.category,
     this.entries = const [],
   });
 
-  factory Artikel.fromJson(Map<String, dynamic> json) {
-    return Artikel(
+  factory Article.fromJson(Map<String, dynamic> json) {
+    return Article(
       id: json['id'] as int,
-      artikel: json['artikel'] as String,
-      lager: json['lager'] as String,
-      menge: json['menge'] as int,
-      einheit: Einheit.values.firstWhere(
-        (e) => e.toString() == 'Einheit.${json['einheit']}',
+      name: json['artikel'] as String,
+      location: json['lager'] as String,
+      quantity: json['menge'] as int,
+      unit: Unit.values.firstWhere(
+        (e) => e.toString() == 'Unit.${json['einheit']}',
       ),
-      groesse: json['groesse'] as String?,
-      rubrik: json['rubrik'] as String,
+      size: json['groesse'] as String?,
+      category: json['rubrik'] as String,
       entries:
           (json['entries'] as List<dynamic>?)
               ?.map((e) => InventoryEntry.fromJson(e as Map<String, dynamic>))
@@ -71,7 +71,7 @@ class InventoryEntry {
   final Team teamName;
   final int typeId;
   final int amountOfItem;
-  final Artikel type;
+  final Article type;
 
   InventoryEntry({
     required this.id,
@@ -96,7 +96,7 @@ class InventoryEntry {
       ),
       typeId: json['typeId'] as int,
       amountOfItem: json['amountOfItem'] as int,
-      type: Artikel.fromJson(json['type'] as Map<String, dynamic>),
+      type: Article.fromJson(json['type'] as Map<String, dynamic>),
     );
   }
 }

@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ).colorScheme.primary,
                                         child: Text(
                                           convertUmlauts(
-                                            entry.type.artikel[0].toUpperCase(),
+                                            entry.type.name[0].toUpperCase(),
                                           ),
                                           style: TextStyle(
                                             color:
@@ -178,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                       title: Text(
-                                        convertUmlauts(entry.type.artikel),
+                                        convertUmlauts(entry.type.name),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),

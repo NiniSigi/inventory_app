@@ -26,7 +26,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
   final TextEditingController _amountController = TextEditingController();
   String? selectedTeam;
   final List<String> teams = ['SPAEHER', 'AMEISLI'];
-  late Future<Artikel> articleFuture; // Changed from Article to Artikel
+  late Future<Article> articleFuture;
 
   @override
   void initState() {
@@ -91,7 +91,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
     );
   }
 
-  Widget _buildEntrySection(BuildContext context, Artikel article) {
+  Widget _buildEntrySection(BuildContext context, Article article) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
@@ -114,7 +114,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
               ),
             ),
             child: Text(
-              'Ausleih Details',
+              'Borrow Details',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -154,7 +154,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
                   keyboardType: TextInputType.number,
                   onChanged: (value) => setState(() {}),
                   decoration: InputDecoration(
-                    labelText: 'Menge',
+                    labelText: 'Quantity',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -219,64 +219,42 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
     );
   }
 
-  Widget _buildArticleInformation(BuildContext context, Artikel article) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary,
-          width: 2,
+  Widget _buildArticleInformation(BuildContext context, Article article) {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Article Information',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            _buildInfoRow(
+              context,
+              'Name',
+              article.name,
+              'Category',
+              article.category,
+            ),
+            _buildInfoRow(
+              context,
+              'Location',
+              article.location,
+              'Quantity',
+              article.quantity.toString(),
+            ),
+            _buildInfoRow(
+              context,
+              'Unit',
+              article.unit.name,
+              'Size',
+              article.size ?? 'N/A',
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(6),
-                topRight: Radius.circular(6),
-              ),
-            ),
-            child: Text(
-              'Artikel Information',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildInfoRow(
-                  context,
-                  'Lager',
-                  convertUmlauts(article.lager),
-                  'Einheit',
-                  convertUmlauts(article.einheit.name),
-                ),
-                SizedBox(height: 16),
-                _buildInfoRow(
-                  context,
-                  'Total Menge',
-                  article.menge.toString(),
-                  'Rubrik',
-                  convertUmlauts(article.rubrik),
-                ),
-                if (article.groesse != null) ...[
-                  SizedBox(height: 16),
-                  _buildInfoCard('Größe', convertUmlauts(article.groesse!)),
-                ],
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -285,10 +263,10 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Artikel Details',
+        title: 'Article Details',
         automaticallyImplyLeading: true,
       ),
-      body: FutureBuilder<Artikel>(
+      body: FutureBuilder<Article>(
         future: articleFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -315,7 +293,7 @@ class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          convertUmlauts(article.artikel),
+                          convertUmlauts(article.name),
                           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 24),
